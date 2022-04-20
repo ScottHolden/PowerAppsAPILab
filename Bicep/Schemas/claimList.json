@@ -1,0 +1,38 @@
+{
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "ClaimId": {
+                "type": "integer"
+            },
+            "MemberId": {
+                "type": "string"
+            },
+            "PatientId": {
+                "type": "string"
+            },
+            "FullName": {
+                "type": "string"
+            },
+            "ClaimAmmount": {
+                "type": "number"
+            },
+            "ClaimDate": {
+                "type": "string"
+            },
+            "PHCPUtilFlag": {
+                "type": "boolean"
+            }
+        },
+        "required": [
+            "ClaimId",
+            "MemberId",
+            "PatientId",
+            "FullName",
+            "ClaimAmmount",
+            "ClaimDate",
+            "PHCPUtilFlag"
+        ]
+    }
+}

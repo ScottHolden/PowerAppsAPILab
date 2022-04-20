@@ -1,0 +1,1 @@
+& az bicep build -f "Bicep/deploy.bicep" --outfile "deploy.generated.json"

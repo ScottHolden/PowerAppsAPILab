@@ -1,0 +1,448 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.5.6.12127",
+      "templateHash": "14779847648607016117"
+    }
+  },
+  "parameters": {
+    "prefix": {
+      "type": "string",
+      "defaultValue": "powerappdemo"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "email": {
+      "type": "string",
+      "defaultValue": "noreply@microsoft.com"
+    }
+  },
+  "variables": {
+    "uniqueName": "[format('{0}{1}', parameters('prefix'), uniqueString(parameters('prefix'), resourceGroup().id))]",
+    "databaseName": "ClaimsDB",
+    "tableName": "Claims",
+    "apiName": "claims",
+    "apiTitle": "Claims API",
+    "operationName": "getclaims",
+    "operationTitle": "Get Claims from Database",
+    "schemaName": "ClaimList",
+    "backendName": "[variables('uniqueName')]",
+    "sigNamedValue": "[format('{0}_{1}_sig', variables('uniqueName'), variables('apiName'))]",
+    "seedLogicAppName": "[format('{0}-seed', variables('uniqueName'))]",
+    "logicAppOperatorRoleId": "515c2055-d9d4-4321-b1b9-bd0c9a0f79fe",
+    "claimsPolicyXML": "<policies>\r\n    <inbound>\r\n        <base />\r\n        <set-backend-service backend-id=\"{{backendId}}\" />\r\n        <set-method>GET</set-method>\r\n        <rewrite-uri template=\"/manual/paths/invoke/?api-version=2016-06-01&amp;sp=/triggers/manual/run&amp;sv=1.0&amp;sig={{sigNamedValue}}\" />\r\n        <set-header name=\"Ocp-Apim-Subscription-Key\" exists-action=\"delete\" />\r\n    </inbound>\r\n    <backend>\r\n        <base />\r\n    </backend>\r\n    <outbound>\r\n        <base />\r\n    </outbound>\r\n    <on-error>\r\n        <base />\r\n    </on-error>\r\n</policies>",
+    "claimsListSchema": "[json(format('{{\"{0}\":{1}}}', variables('schemaName'), '{\r\n    \"type\": \"array\",\r\n    \"items\": {\r\n        \"type\": \"object\",\r\n        \"properties\": {\r\n            \"ClaimId\": {\r\n                \"type\": \"integer\"\r\n            },\r\n            \"MemberId\": {\r\n                \"type\": \"string\"\r\n            },\r\n            \"PatientId\": {\r\n                \"type\": \"string\"\r\n            },\r\n            \"FullName\": {\r\n                \"type\": \"string\"\r\n            },\r\n            \"ClaimAmmount\": {\r\n                \"type\": \"number\"\r\n            },\r\n            \"ClaimDate\": {\r\n                \"type\": \"string\"\r\n            },\r\n            \"PHCPUtilFlag\": {\r\n                \"type\": \"boolean\"\r\n            }\r\n        },\r\n        \"required\": [\r\n            \"ClaimId\",\r\n            \"MemberId\",\r\n            \"PatientId\",\r\n            \"FullName\",\r\n            \"ClaimAmmount\",\r\n            \"ClaimDate\",\r\n            \"PHCPUtilFlag\"\r\n        ]\r\n    }\r\n}'))]",
+    "sqlSeedQuery": "[replace('IF OBJECT_ID(N''dbo.{{TABLENAME}}'', N''U'') IS NULL BEGIN\r\nCREATE TABLE {{TABLENAME}}(ClaimId int,MemberId VARCHAR(255),PatientId VARCHAR(255),FullName VARCHAR(255),ClaimAmmount DECIMAL(20,2),ClaimDate DATE,PHCPUtilFlag BIT);\r\nINSERT INTO {{TABLENAME}} VALUES \r\n(3000,''ABC-1000'',''7acf44ba3ae'',''Yan Vang'',257.32,''2021-03-01'',1),\r\n(3001,''ABC-1000'',''baa98e1d852'',''Yan Vang'',90.35,''2021-03-02'',1),\r\n(3002,''ABC-1001'',''e479a660f3c'',''Eluney Rivas'',290.92,''2021-03-02'',1),\r\n(3003,''ABC-1002'',''f5548c2ca0b'',''Dikla Vilaro'',136.45,''2021-03-02'',0),\r\n(3004,''ABC-1003'',''df22ed0c409'',''Tamandani Power'',232.29,''2021-03-03'',1),\r\n(3005,''ABC-1004'',''21fe44c19ac'',''Andy Vass'',318.97,''2021-03-03'',1),\r\n(3006,''ABC-1005'',''c878296c3af'',''Nissa Thatcher'',210.98,''2021-03-03'',1),\r\n(3007,''ABC-1006'',''cc409120a8e'',''Juma Anker'',220.62,''2021-03-04'',1),\r\n(3008,''ABC-1014'',''dcecb75546d'',''Suresh Gardner'',128.61,''2021-03-06'',1),\r\n(3009,''ABC-1007'',''170c5ac1695'',''Delia Ryan'',323.87,''2021-03-08'',1),\r\n(3010,''ABC-1002'',''162c64cc0a7'',''Dikla Vilaro'',246.7,''2021-03-09'',0),\r\n(3011,''ABC-1007'',''b6a309af64f'',''Delia Ryan'',490.63,''2021-03-12'',0),\r\n(3012,''ABC-1008'',''a799cd326c8'',''Vergilius Van Herten'',134.03,''2021-03-12'',1),\r\n(3013,''ABC-1005'',''2896aa06504'',''Nissa Thatcher'',453.96,''2021-03-14'',1),\r\n(3014,''ABC-1008'',''46c50d26c34'',''Vergilius Van Herten'',97.78,''2021-03-17'',1),\r\n(3015,''ABC-1009'',''41ea30a9979'',''Abdul Sneiders'',443.23,''2021-03-18'',1),\r\n(3016,''ABC-1010'',''1fc9ae96884'',''Yaren Mayes'',184.21,''2021-03-19'',1),\r\n(3017,''ABC-1000'',''cc4d8993f34'',''Yan Vang'',235.5,''2021-03-21'',1),\r\n(3018,''ABC-1005'',''08047815bac'',''Nissa Thatcher'',427.72,''2021-03-21'',1),\r\n(3019,''ABC-1001'',''0cb652ca29d'',''Eluney Rivas'',385.06,''2021-03-22'',0),\r\n(3020,''ABC-1011'',''d1e3bbb81c8'',''Lova Duran'',272.55,''2021-03-22'',1),\r\n(3021,''ABC-1008'',''d95b2fb4a26'',''Vergilius Van Herten'',169.36,''2021-03-22'',1),\r\n(3022,''ABC-1002'',''4eb0f37720b'',''Dikla Vilaro'',93.02,''2021-03-24'',0),\r\n(3023,''ABC-1013'',''aeace9b0dd5'',''Angelique Urena'',305.72,''2021-03-25'',1),\r\n(3024,''ABC-1018'',''f1d2106f18f'',''Rishi Afolabi'',261.52,''2021-03-25'',0),\r\n(3025,''ABC-1012'',''11ae999f04a'',''Jan Alexandersson'',491.31,''2021-03-25'',1),\r\n(3026,''ABC-1000'',''1d85941b9f5'',''Yan Vang'',110.9,''2021-03-26'',1),\r\n(3027,''ABC-1016'',''25f36d27f5e'',''Mokosh Kocsis'',250.52,''2021-03-26'',1),\r\n(3028,''ABC-1015'',''2f4104fa214'',''Marinho Walter'',489.61,''2021-03-28'',0),\r\n(3029,''ABC-1017'',''8fe34507d03'',''Lashonda Gaspar'',225.54,''2021-03-30'',1),\r\n(3030,''ABC-1001'',''47ed622b16c'',''Eluney Rivas'',424.78,''2021-04-02'',0),\r\n(3031,''ABC-1015'',''6b5477d0afb'',''Marinho Walter'',213.15,''2021-04-05'',1),\r\n(3032,''ABC-1002'',''87255e4dafa'',''Dikla Vilaro'',110.75,''2021-04-08'',0),\r\n(3033,''ABC-1000'',''0858b450097'',''Yan Vang'',269.32,''2021-04-08'',1),\r\n(3034,''ABC-1016'',''d4a82ef88c0'',''Mokosh Kocsis'',328.76,''2021-04-11'',0),\r\n(3035,''ABC-1006'',''e9628812212'',''Juma Anker'',203.96,''2021-04-11'',0),\r\n(3036,''ABC-1007'',''95b3b38a227'',''Delia Ryan'',235.04,''2021-04-13'',0),\r\n(3037,''ABC-1011'',''42bc5218041'',''Lova Duran'',84.59,''2021-04-15'',1),\r\n(3038,''ABC-1001'',''c998e0d4f2c'',''Eluney Rivas'',160.89,''2021-04-15'',1),\r\n(3039,''ABC-1002'',''cfd9023e587'',''Dikla Vilaro'',390.7,''2021-04-17'',1),\r\n(3040,''ABC-1010'',''38d4cfd162f'',''Yaren Mayes'',367.79,''2021-04-19'',0),\r\n(3041,''ABC-1000'',''0dd671ed3c9'',''Yan Vang'',62.1,''2021-04-19'',1),\r\n(3042,''ABC-1005'',''b5f5a590a54'',''Nissa Thatcher'',158.14,''2021-04-19'',1),\r\n(3043,''ABC-1017'',''5f8cafc9ff5'',''Lashonda Gaspar'',326.9,''2021-04-21'',0),\r\n(3044,''ABC-1000'',''2192d6d1ce2'',''Yan Vang'',336.28,''2021-04-23'',1),\r\n(3045,''ABC-1008'',''81a122e7dad'',''Vergilius Van Herten'',432,''2021-04-25'',0),\r\n(3046,''ABC-1018'',''384e6b4a709'',''Rishi Afolabi'',486.69,''2021-04-27'',0),\r\n(3047,''ABC-1011'',''e1ab8b798cf'',''Lova Duran'',261.05,''2021-04-30'',0),\r\n(3048,''ABC-1008'',''bdd2c753a24'',''Vergilius Van Herten'',291.77,''2021-04-30'',1),\r\n(3049,''ABC-1000'',''40483697d64'',''Yan Vang'',451.17,''2021-04-30'',1);\r\nEND;', '{{TABLENAME}}', variables('tableName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ApiManagement/service/apis/operations/policies",
+      "apiVersion": "2021-08-01",
+      "name": "[format('{0}/{1}/{2}/{3}', variables('uniqueName'), variables('apiName'), variables('operationName'), 'policy')]",
+      "properties": {
+        "format": "rawxml",
+        "value": "[replace(replace(variables('claimsPolicyXML'), '{{sigNamedValue}}', format('{{{{{0}}}}}', variables('sigNamedValue'))), '{{backendId}}', variables('backendName'))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis/operations', variables('uniqueName'), variables('apiName'), variables('operationName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis/schemas",
+      "apiVersion": "2021-08-01",
+      "name": "[format('{0}/{1}/{2}', variables('uniqueName'), variables('apiName'), uniqueString(variables('schemaName')))]",
+      "properties": {
+        "contentType": "application/vnd.oai.openapi.components+json",
+        "document": {
+          "components": {
+            "schemas": "[variables('claimsListSchema')]"
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', variables('uniqueName'), variables('apiName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis/operations",
+      "apiVersion": "2021-08-01",
+      "name": "[format('{0}/{1}/{2}', variables('uniqueName'), variables('apiName'), variables('operationName'))]",
+      "properties": {
+        "displayName": "[variables('operationTitle')]",
+        "method": "get",
+        "urlTemplate": "/",
+        "responses": [
+          {
+            "statusCode": 200,
+            "description": "[variables('operationTitle')]",
+            "representations": [
+              {
+                "contentType": "application/json",
+                "schemaId": "[uniqueString(variables('schemaName'))]",
+                "typeName": "[variables('schemaName')]"
+              }
+            ]
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', variables('uniqueName'), variables('apiName'))]",
+        "[resourceId('Microsoft.ApiManagement/service/apis/schemas', variables('uniqueName'), variables('apiName'), uniqueString(variables('schemaName')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/backends",
+      "apiVersion": "2021-08-01",
+      "name": "[format('{0}/{1}', variables('uniqueName'), variables('backendName'))]",
+      "properties": {
+        "protocol": "http",
+        "url": "[format('{0}/triggers', reference(resourceId('Microsoft.Logic/workflows', variables('uniqueName'))).accessEndpoint)]",
+        "resourceId": "[format('https://{0}/{1}', environment().resourceManager, resourceId('Microsoft.Logic/workflows', variables('uniqueName')))]",
+        "description": "[variables('backendName')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', variables('uniqueName'))]",
+        "[resourceId('Microsoft.Logic/workflows', variables('uniqueName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/namedValues",
+      "apiVersion": "2021-08-01",
+      "name": "[format('{0}/{1}', variables('uniqueName'), variables('sigNamedValue'))]",
+      "properties": {
+        "displayName": "[variables('sigNamedValue')]",
+        "secret": true,
+        "value": "[listCallbackUrl(format('{0}/triggers/manual', resourceId('Microsoft.Logic/workflows', variables('uniqueName'))), '2016-10-01').queries.sig]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', variables('uniqueName'))]",
+        "[resourceId('Microsoft.Logic/workflows', variables('uniqueName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis",
+      "apiVersion": "2021-08-01",
+      "name": "[format('{0}/{1}', variables('uniqueName'), variables('apiName'))]",
+      "properties": {
+        "displayName": "[variables('apiTitle')]",
+        "protocols": [
+          "https"
+        ],
+        "path": "[variables('apiName')]",
+        "serviceUrl": "[format('{0}/triggers', reference(resourceId('Microsoft.Logic/workflows', variables('uniqueName'))).accessEndpoint)]",
+        "subscriptionRequired": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', variables('uniqueName'))]",
+        "[resourceId('Microsoft.Logic/workflows', variables('uniqueName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Sql/servers/firewallRules",
+      "apiVersion": "2021-08-01-preview",
+      "name": "[format('{0}/{1}', variables('uniqueName'), 'AllowAllWindowsAzureIps')]",
+      "properties": {
+        "endIpAddress": "0.0.0.0",
+        "startIpAddress": "0.0.0.0"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', variables('uniqueName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ApiManagement/service",
+      "apiVersion": "2021-08-01",
+      "name": "[variables('uniqueName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "capacity": 0,
+        "name": "Consumption"
+      },
+      "properties": {
+        "publisherEmail": "[parameters('email')]",
+        "publisherName": "[parameters('prefix')]"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2021-08-01-preview",
+      "name": "[variables('uniqueName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "version": "12.0",
+        "administrators": {
+          "administratorType": "ActiveDirectory",
+          "azureADOnlyAuthentication": true,
+          "principalType": "Application",
+          "login": "[variables('uniqueName')]",
+          "sid": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName'))).principalId]",
+          "tenantId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName'))).tenantId]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases",
+      "apiVersion": "2021-08-01-preview",
+      "name": "[format('{0}/{1}', variables('uniqueName'), variables('databaseName'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "collation": "SQL_Latin1_General_CP1_CI_AS"
+      },
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', variables('uniqueName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2018-11-30",
+      "name": "[variables('uniqueName')]",
+      "location": "[parameters('location')]"
+    },
+    {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2018-07-01-preview",
+      "name": "sql",
+      "location": "[parameters('location')]",
+      "properties": {
+        "api": {
+          "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'sql')]"
+        },
+        "displayName": "sqlConnection",
+        "parameterValueSet": {
+          "name": "oauthMI",
+          "values": {}
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2018-07-01-preview",
+      "name": "arm",
+      "location": "[parameters('location')]",
+      "properties": {
+        "api": {
+          "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'arm')]"
+        },
+        "displayName": "arm",
+        "parameterValueType": "Alternative",
+        "alternativeParameterValues": {}
+      }
+    },
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2019-05-01",
+      "name": "[variables('uniqueName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "parameters": {
+          "$connections": {
+            "value": {
+              "sql": {
+                "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'sql')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', 'sql')]",
+                "connectionName": "sql",
+                "connectionProperties": {
+                  "authentication": {
+                    "type": "ManagedServiceIdentity",
+                    "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName'))]"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "$connections": {
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "manual": {
+              "kind": "Http",
+              "type": "Request",
+              "inputs": {
+                "method": "GET",
+                "schema": {}
+              }
+            }
+          },
+          "actions": {
+            "SqlQuery": {
+              "type": "ApiConnection",
+              "inputs": {
+                "body": {
+                  "query": "[format('SELECT * FROM {0}', variables('tableName'))]"
+                },
+                "method": "post",
+                "path": "[format('/v2/datasets/@{{encodeURIComponent(encodeURIComponent(''{0}''))}},@{{encodeURIComponent(encodeURIComponent(''{1}''))}}/query/sql', reference(resourceId('Microsoft.Sql/servers', variables('uniqueName'))).fullyQualifiedDomainName, variables('databaseName'))]",
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['sql']['connectionId']"
+                  }
+                }
+              }
+            },
+            "Response": {
+              "kind": "Http",
+              "type": "Response",
+              "inputs": {
+                "statusCode": 200,
+                "body": "@body('SqlQuery')?['resultsets']?['Table1']"
+              },
+              "runAfter": {
+                "SqlQuery": [
+                  "Succeeded"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "identity": {
+        "type": "UserAssigned",
+        "userAssignedIdentities": {
+          "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName')))]": {}
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName'))]",
+        "[resourceId('Microsoft.Web/connections', 'sql')]",
+        "[resourceId('Microsoft.Sql/servers', variables('uniqueName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2019-05-01",
+      "name": "[variables('seedLogicAppName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "parameters": {
+          "$connections": {
+            "value": {
+              "sql": {
+                "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'sql')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', 'sql')]",
+                "connectionName": "sql",
+                "connectionProperties": {
+                  "authentication": {
+                    "type": "ManagedServiceIdentity",
+                    "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName'))]"
+                  }
+                }
+              },
+              "arm": {
+                "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'arm')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', 'arm')]",
+                "connectionName": "arm",
+                "connectionProperties": {
+                  "authentication": {
+                    "type": "ManagedServiceIdentity",
+                    "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName'))]"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "$connections": {
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "Recurrence": {
+              "recurrence": {
+                "frequency": "Minute",
+                "interval": 1
+              },
+              "type": "Recurrence"
+            }
+          },
+          "actions": {
+            "SqlQuery": {
+              "type": "ApiConnection",
+              "inputs": {
+                "body": {
+                  "query": "[variables('sqlSeedQuery')]"
+                },
+                "method": "post",
+                "path": "[format('/v2/datasets/@{{encodeURIComponent(encodeURIComponent(''{0}''))}},@{{encodeURIComponent(encodeURIComponent(''{1}''))}}/query/sql', reference(resourceId('Microsoft.Sql/servers', variables('uniqueName'))).fullyQualifiedDomainName, variables('databaseName'))]",
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['sql']['connectionId']"
+                  }
+                }
+              }
+            },
+            "DisableLogicApp": {
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['arm']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "[format('/subscriptions/@{{encodeURIComponent(''{0}'')}}/resourcegroups/@{{encodeURIComponent(''{1}'')}}/providers/@{{encodeURIComponent(''Microsoft.Logic'')}}/@{{encodeURIComponent(''workflows/{2}'')}}/@{{encodeURIComponent(''disable'')}}', subscription().subscriptionId, resourceGroup().name, variables('seedLogicAppName'))]",
+                "queries": {
+                  "x-ms-api-version": "2016-06-01"
+                }
+              },
+              "runAfter": {
+                "SqlQuery": [
+                  "Succeeded"
+                ]
+              },
+              "type": "ApiConnection"
+            }
+          }
+        }
+      },
+      "identity": {
+        "type": "UserAssigned",
+        "userAssignedIdentities": {
+          "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName')))]": {}
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', 'arm')]",
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName'))]",
+        "[resourceId('Microsoft.Web/connections', 'sql')]",
+        "[resourceId('Microsoft.Sql/servers/databases', variables('uniqueName'), variables('databaseName'))]",
+        "[resourceId('Microsoft.Sql/servers', variables('uniqueName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-10-01-preview",
+      "scope": "[format('Microsoft.Logic/workflows/{0}', variables('seedLogicAppName'))]",
+      "name": "[guid(resourceId('Microsoft.Logic/workflows', variables('seedLogicAppName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName')), variables('logicAppOperatorRoleId'))]",
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('logicAppOperatorRoleId'))]",
+        "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName'))).principalId]",
+        "principalType": "ServicePrincipal"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Logic/workflows', variables('seedLogicAppName'))]",
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uniqueName'))]"
+      ]
+    }
+  ]
+}
